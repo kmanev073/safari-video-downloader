@@ -32,6 +32,14 @@ class SafariDownloader:
         # Update youtube-dl first
         subprocess.run([self.downloader_path, "-U"])
 
+    def validifyDir(self, dirname):
+        valid_chars = "-_.()\\\/ %s%s" % (string.ascii_letters, string.digits)
+        valid_chars = frozenset(valid_chars)
+        # The unicodedata.normalize call replaces accented characters with the unaccented equivalent,
+        # which is better than simply stripping them out. After that all disallowed characters are removed.
+        cleaned_dirname = unicodedata.normalize('NFKD', dirname).encode('ascii', 'ignore').decode('ascii')
+        return ''.join(c for c in cleaned_dirname if c in valid_chars)
+
     def validify(self, filename):
         valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
         valid_chars = frozenset(valid_chars)
@@ -45,6 +53,7 @@ class SafariDownloader:
             topic_name = topic.a.text
             # Creating folder to put the videos in
             save_folder = '{}/{}'.format(self.output_folder, topic_name)
+            save_folder = self.validifyDir(save_folder)
             os.makedirs(save_folder, exist_ok=True)
             # You can choose to skip these topic_name, comment these three lines if you do not want to skip any
             if topic_name in ('Keynotes', 'Strata Business Summit', 'Sponsored'):
